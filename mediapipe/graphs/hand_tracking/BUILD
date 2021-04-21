@@ -44,8 +44,8 @@ cc_library(
         ":desktop_offline_calculators",
         "//mediapipe/calculators/core:constant_side_packet_calculator",
         "//mediapipe/calculators/core:merge_calculator",
-        "//mediapipe/graphs/hand_tracking/subgraphs:hand_renderer_cpu",
-        "//mediapipe/modules/hand_landmark:hand_landmark_tracking_cpu",
+        "//mediapipe/graphs/hand_tracking/subgraphs:hand_renderer_gpu",
+        "//mediapipe/modules/hand_landmark:hand_landmark_tracking_gpu",
     ],
 )
 
