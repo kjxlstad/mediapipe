@@ -8,7 +8,7 @@
 
 type: "HandLandmarkTrackingGpu"
 
-# GPU image. (GpuBuffer)
+# CPU image. (GpuBuffer)
 input_stream: "IMAGE:image"
 
 # Max number of hands to detect/track. (int)
@@ -37,6 +37,19 @@ output_stream: "HAND_ROIS_FROM_LANDMARKS:hand_rects"
 # Regions of interest calculated based on palm detections.
 # (std::vector<NormalizedRect>)
 output_stream: "HAND_ROIS_FROM_PALM_DETECTIONS:hand_rects_from_palm_detections"
+
+node {
+	calculator: "ColorConvertCalculator"
+	input_stream: "RGB_IN:image"
+	output_stream: "RGBA_OUT:image_rgba"
+}
+
+node {
+	calculator: "ImageFrameToGpuBufferCalculator"
+	input_stream: "image_rgba"
+	output_stream: "image_gpu"
+}
+
 
 # Defines whether landmarks on the previous image should be used to help
 # localize landmarks on the current image.
@@ -71,7 +84,7 @@ node {
 # round of palm detection.
 node {
   calculator: "GateCalculator"
-  input_stream: "image"
+  input_stream: "image_gpu"
   input_stream: "DISALLOW:prev_has_enough_hands"
   output_stream: "palm_detection_image"
   options: {
@@ -155,7 +168,7 @@ node {
 # Extracts image size.
 node {
   calculator: "ImagePropertiesCalculator"
-  input_stream: "IMAGE_GPU:image"
+  input_stream: "IMAGE_GPU:image_gpu"
   output_stream: "SIZE:image_size"
 }
 
@@ -167,7 +180,7 @@ node {
 node {
   calculator: "BeginLoopNormalizedRectCalculator"
   input_stream: "ITERABLE:hand_rects"
-  input_stream: "CLONE:0:image"
+  input_stream: "CLONE:0:image_gpu"
   input_stream: "CLONE:1:image_size"
   output_stream: "ITEM:single_hand_rect"
   output_stream: "CLONE:0:image_for_landmarks"
@@ -230,7 +243,7 @@ node {
 # timestamp bound update occurs to jump start the feedback loop.
 node {
   calculator: "PreviousLoopbackCalculator"
-  input_stream: "MAIN:image"
+  input_stream: "MAIN:image_gpu"
   input_stream: "LOOP:hand_rects_from_landmarks"
   input_stream_info: {
     tag_index: "LOOP"
